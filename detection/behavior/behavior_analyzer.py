@@ -1,23 +1,10 @@
 from detection.behavior.classifier import BehaviorClassifier
-
-
-class BehaviorResult:
-
-    def __init__(self):
-
-        self.detected = False
-        self.attack = None
-        self.score = 0
-        self.severity = "LOW"
-        self.reasons = []
-        self.activity = "Normal Traffic"
-        self.confidence = "HIGH"
+from detection.behavior.behavior_result import BehaviorResult
 
 
 class BehaviorAnalyzer:
 
     def __init__(self):
-
         self.classifier = BehaviorClassifier()
 
     def analyze(self, host):
@@ -37,10 +24,11 @@ class BehaviorAnalyzer:
 
             result.detected = True
             result.attack = "Port Scan"
-            result.score = 40
-            result.severity = "MEDIUM"
-            result.reasons.append(
-                f"Contacted {len(host['destination_ports'])} unique destination ports."
+            result.raise_score(40)
+
+            result.add_reason(
+                f"Contacted {len(host['destination_ports'])} "
+                f"unique destination ports."
             )
 
         # -------------------------
@@ -51,10 +39,11 @@ class BehaviorAnalyzer:
 
             result.detected = True
             result.attack = "Host Sweep"
-            result.score = 50
-            result.severity = "MEDIUM"
-            result.reasons.append(
-                f"Contacted {len(host['destination_ips'])} unique destination IPs."
+            result.raise_score(50)
+
+            result.add_reason(
+                f"Contacted {len(host['destination_ips'])} "
+                f"unique destination IPs."
             )
 
         # -------------------------
@@ -63,18 +52,28 @@ class BehaviorAnalyzer:
 
         elif classification["activity"] == "Connection Burst":
 
-            result.detected = False
-            result.attack = None
-            result.score = 10
-            result.severity = "LOW"
-            result.reasons.append(
+            result.detected = True
+            result.attack = "Connection Burst"
+            result.raise_score(10)
+
+            result.add_reason(
                 "Large number of new outbound connections."
             )
 
+        # -------------------------
+        # Normal Traffic
+        # -------------------------
+
         else:
 
-            result.reasons.append(
+            result.detected = False
+            result.attack = None
+
+            result.add_reason(
                 "No suspicious behaviour detected."
             )
+
+        # Calculate severity from score
+        result.finalize()
 
         return result
