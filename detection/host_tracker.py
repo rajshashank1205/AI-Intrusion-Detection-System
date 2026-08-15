@@ -16,13 +16,15 @@ def update_host(packet_data):
     if src_ip not in hosts:
 
         hosts[src_ip] = {
+            "ip" : src_ip,
             "first_seen": datetime.now(),
             "last_seen": datetime.now(),
             "packet_count": 0,
             "byte_count": 0,
             "syn_count": 0,
             "destination_ips": set(),
-            "destination_ports": set()
+            "destination_ports": set(),
+            "login_attempts": 0
         }
 
     host = hosts[src_ip]
@@ -51,5 +53,11 @@ def update_host(packet_data):
             host["destination_ports"].add(
                 packet_data["dst_port"]
             )
+    if(
+        packet_data.get("protocol") == "HTTP"
+        and packet_data.get("method") == "POST"
+        and packet_data.get("path") == "/login"
+    ):
+        host["login_attempts"] += 1
 
     return host

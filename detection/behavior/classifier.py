@@ -8,6 +8,29 @@ class BehaviorClassifier:
         syn = host["syn_count"]
         dst_ips = len(host["destination_ips"])
         dst_ports = len(host["destination_ports"])
+        login_attempts = host.get("login_attempts", 0)
+
+        # ----------------------------
+        # Brute Force Login Behavior
+        # ----------------------------
+
+        if login_attempts >= 10:
+            return {
+                "activity": "Brute Force Login",
+                "confidence": "HIGH"
+            }
+
+        if login_attempts >= 5:
+            return {
+                "activity": "Brute Force Login",
+                "confidence": "HIGH"
+            }
+
+        if login_attempts >= 3:
+            return {
+                "activity": "Suspicious Login Activity",
+                "confidence": "MEDIUM"
+            }
 
         # ----------------------------
         # Port Scan
