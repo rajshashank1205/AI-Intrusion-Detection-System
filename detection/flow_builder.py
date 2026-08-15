@@ -487,22 +487,72 @@ def process_flow(packet_data):
 
 def process_http_request(packet_data):
     """
-    Process an HTTP request using the existing IDS pipeline.
+    Process an HTTP request using the existing IDS flow pipeline.
+
+    HTTP requests are grouped into the same flow so that
+    repeated requests contribute to packet_count, byte_count,
+    and recent traffic statistics.
     """
+
+    cleanup_expired_flows()
 
     host = update_host(packet_data)
 
-    features = {
-        "duration": 0,
-        "packet_count": 1,
-        "byte_count": packet_data["packet_size"],
-        "packets_per_second": 1,
-        "bytes_per_second": packet_data["packet_size"],
-        "syn_count": 0,
-        "ack_count": 0,
-        "unique_destination_ports": 1,
-        "recent_packet_count": 1,
-    }
+    flow_key = (
+        packet_data["src_ip"],
+        packet_data["dst_ip"],
+        packet_data["src_port"],
+        packet_data["dst_port"],
+        packet_data["protocol"]
+    )
+
+    # ----------------------------------
+    # Existing HTTP Flow
+    # ----------------------------------
+
+    if flow_key in active_flows:
+
+        update_flow(
+            active_flows[flow_key],
+            packet_data
+        )
+
+        print("\n🔵 Existing HTTP Flow Updated")
+        print(flow_key)
+
+    # ----------------------------------
+    # New HTTP Flow
+    # ----------------------------------
+
+    else:
+
+        active_flows[flow_key] = create_flow(
+            packet_data
+        )
+
+        print("\n🟢 New HTTP Flow Created")
+        print(flow_key)
+
+    # ----------------------------------
+    # Extract Aggregated Features
+    # ----------------------------------
+
+    flow = active_flows[flow_key]
+
+    features = extract_features(flow)
+
+    # ----------------------------------
+    # Recent HTTP Requests
+    # ----------------------------------
+
+    features["recent_packet_count"] = min(
+        flow["packet_count"],
+        10
+    )
+
+    # ----------------------------------
+    # Run Detection Pipeline
+    # ----------------------------------
 
     analysis = manager.analyze(
         packet_data,
@@ -510,17 +560,19 @@ def process_http_request(packet_data):
         host
     )
 
+    # ----------------------------------
+    # Display Results
+    # ----------------------------------
+
     print_flow_analysis(
-        (
-            packet_data["src_ip"],
-            packet_data["dst_ip"],
-            packet_data["src_port"],
-            packet_data["dst_port"],
-            packet_data["protocol"]
-        ),
+        flow_key,
         features,
         analysis
     )
+
+    # ----------------------------------
+    # Save Threat
+    # ----------------------------------
 
     save_detected_threat(
         packet_data,

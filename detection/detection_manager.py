@@ -267,6 +267,7 @@ class DetectionManager:
             if detector_name in [
                 "SQLInjectionDetector",
                 "XSSDetector",
+                "BruteForceDetector",
                 "NewDetector"
             ]:
 
