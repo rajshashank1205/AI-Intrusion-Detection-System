@@ -1,25 +1,44 @@
 import requests
 import time
 
+
 URL = "http://127.0.0.1:5000/login"
 
-print("Starting brute-force detector test...")
-print("-" * 50)
 
-for i in range(10):
-    data = {
-        "username": "attacker",
-        "password": f"wrongpassword{i}"
-    }
+def test_bruteforce_detection():
 
-    response = requests.post(URL, data=data)
+    print("\nStarting brute-force detector test...")
+    print("-" * 50)
 
+    successful_requests = 0
+
+    for i in range(10):
+
+        data = {
+            "username": "attacker",
+            "password": f"wrongpassword{i}"
+        }
+
+        response = requests.post(
+            URL,
+            data=data,
+            timeout=5
+        )
+
+        print(
+            f"Attempt {i + 1}: "
+            f"HTTP {response.status_code}"
+        )
+
+        assert response.status_code == 200
+
+        successful_requests += 1
+
+        time.sleep(0.2)
+
+    print("-" * 50)
     print(
-        f"Attempt {i + 1}/10 | "
-        f"Status: {response.status_code}"
+        f"Completed {successful_requests}/10 login attempts."
     )
 
-    time.sleep(0.5)
-
-print("-" * 50)
-print("Brute-force test completed.")
+    assert successful_requests == 10
