@@ -8,6 +8,10 @@ import {
 import type { ReactNode } from "react";
 
 
+// =====================================================
+// TYPES
+// =====================================================
+
 export type Alert = {
   timestamp: string;
   source_ip: string;
@@ -40,11 +44,17 @@ type LiveDataContextType = {
 };
 
 
-const LiveDataContext =
-  createContext<LiveDataContextType | null>(
-    null
-  );
+// =====================================================
+// CONTEXT
+// =====================================================
 
+const LiveDataContext =
+  createContext<LiveDataContextType | null>(null);
+
+
+// =====================================================
+// PROVIDER
+// =====================================================
 
 export function LiveDataProvider({
   children,
@@ -59,37 +69,46 @@ export function LiveDataProvider({
     useState<LivePacket[]>([]);
 
 
-  // -------------------------------------------------
-  // Add Live Alert
-  // -------------------------------------------------
+  // ===================================================
+  // ADD LIVE ALERT
+  // ===================================================
 
   function addAlert(alert: Alert) {
 
-    setAlerts(
-      (prev) =>
-        [alert, ...prev].slice(0, 20)
+    setAlerts((prev) => {
+
+      const updatedAlerts =
+        [alert, ...prev].slice(0, 20);
+
+      return updatedAlerts;
+
+    });
+
+
+    // Tell dashboard cards that new data arrived
+    window.dispatchEvent(
+      new CustomEvent("dashboard-update")
     );
 
   }
 
 
-  // -------------------------------------------------
-  // Add Live Packet
-  // -------------------------------------------------
+  // ===================================================
+  // ADD LIVE PACKET
+  // ===================================================
 
   function addPacket(packet: LivePacket) {
 
-    setPackets(
-      (prev) =>
-        [packet, ...prev].slice(0, 100)
+    setPackets((prev) =>
+      [packet, ...prev].slice(0, 100)
     );
 
   }
 
 
-  // -------------------------------------------------
-  // WebSocket Connection
-  // -------------------------------------------------
+  // ===================================================
+  // WEBSOCKET CONNECTION
+  // ===================================================
 
   useEffect(() => {
 
@@ -102,9 +121,9 @@ export function LiveDataProvider({
     let isUnmounted = false;
 
 
-    // -----------------------------------------------
-    // Connect To IDS Backend
-    // -----------------------------------------------
+    // -------------------------------------------------
+    // CONNECT
+    // -------------------------------------------------
 
     function connectWebSocket() {
 
@@ -123,9 +142,9 @@ export function LiveDataProvider({
       );
 
 
-      // ---------------------------------------------
-      // Connection Opened
-      // ---------------------------------------------
+      // ------------------------------------------------
+      // CONNECTION OPEN
+      // ------------------------------------------------
 
       socket.onopen = () => {
 
@@ -136,9 +155,9 @@ export function LiveDataProvider({
       };
 
 
-      // ---------------------------------------------
-      // Receive Message
-      // ---------------------------------------------
+      // ------------------------------------------------
+      // RECEIVE MESSAGE
+      // ------------------------------------------------
 
       socket.onmessage = (event) => {
 
@@ -154,9 +173,9 @@ export function LiveDataProvider({
           );
 
 
-          // -----------------------------------------
-          // Ignore Backend Heartbeat
-          // -----------------------------------------
+          // --------------------------------------------
+          // HEARTBEAT
+          // --------------------------------------------
 
           if (data.type === "ping") {
 
@@ -165,9 +184,9 @@ export function LiveDataProvider({
           }
 
 
-          // -----------------------------------------
-          // Live Packet Event
-          // -----------------------------------------
+          // --------------------------------------------
+          // LIVE PACKET
+          // --------------------------------------------
 
           if (data.type === "packet") {
 
@@ -180,13 +199,9 @@ export function LiveDataProvider({
           }
 
 
-          // -----------------------------------------
-          // Live Alert Event
-          // -----------------------------------------
-          //
-          // Alert events currently do not contain
-          // a "type" field, so identify them using
-          // the alert fields sent by the IDS.
+          // --------------------------------------------
+          // LIVE ALERT
+          // --------------------------------------------
 
           if (
             data.alert_type &&
@@ -198,13 +213,20 @@ export function LiveDataProvider({
               data as Alert
             );
 
+            return;
+
           }
 
+
+          console.log(
+            "ℹ️ Unknown WebSocket event:",
+            data
+          );
 
         } catch (error) {
 
           console.error(
-            "❌ Failed to process WebSocket message:",
+            "❌ Failed to parse WebSocket message:",
             error
           );
 
@@ -213,23 +235,9 @@ export function LiveDataProvider({
       };
 
 
-      // ---------------------------------------------
-      // WebSocket Error
-      // ---------------------------------------------
-
-      socket.onerror = (error) => {
-
-        console.error(
-          "❌ IDS WebSocket error:",
-          error
-        );
-
-      };
-
-
-      // ---------------------------------------------
-      // Connection Closed
-      // ---------------------------------------------
+      // ------------------------------------------------
+      // CONNECTION CLOSED
+      // ------------------------------------------------
 
       socket.onclose = () => {
 
@@ -238,9 +246,12 @@ export function LiveDataProvider({
         );
 
 
-        // Automatically reconnect after 3 seconds.
-
         if (!isUnmounted) {
+
+          console.log(
+            "🔄 Reconnecting in 3 seconds..."
+          );
+
 
           reconnectTimer =
             setTimeout(
@@ -252,17 +263,33 @@ export function LiveDataProvider({
 
       };
 
+
+      // ------------------------------------------------
+      // CONNECTION ERROR
+      // ------------------------------------------------
+
+      socket.onerror = (error) => {
+
+        console.error(
+          "❌ IDS WebSocket error:",
+          error
+        );
+
+      };
+
     }
 
 
-    // Start WebSocket connection.
+    // =================================================
+    // START CONNECTION
+    // =================================================
 
     connectWebSocket();
 
 
-    // -----------------------------------------------
-    // Cleanup
-    // -----------------------------------------------
+    // =================================================
+    // CLEANUP
+    // =================================================
 
     return () => {
 
@@ -289,9 +316,9 @@ export function LiveDataProvider({
   }, []);
 
 
-  // -------------------------------------------------
-  // Context Provider
-  // -------------------------------------------------
+  // ===================================================
+  // CONTEXT PROVIDER
+  // ===================================================
 
   return (
 
@@ -313,9 +340,9 @@ export function LiveDataProvider({
 }
 
 
-// -------------------------------------------------
-// Live Data Hook
-// -------------------------------------------------
+// =====================================================
+// LIVE DATA HOOK
+// =====================================================
 
 export function useLiveData() {
 

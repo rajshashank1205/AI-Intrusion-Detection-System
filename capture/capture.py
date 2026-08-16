@@ -19,7 +19,7 @@ LOOPBACK_INTERFACE = (
     r"\Device\NPF_Loopback"
 )
 
-CAPTURE_FILTER = "tcp port 5000"
+CAPTURE_FILTER = "tcp"
 
 
 # -------------------------------------------------
@@ -279,3 +279,6 @@ def start_packet_capture():
 def stop_packet_capture():
 
     stop_event.set()
+
+if __name__ == "__main__":
+    start_packet_capture()

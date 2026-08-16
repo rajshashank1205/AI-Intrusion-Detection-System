@@ -19,6 +19,9 @@ from backend.services.incident_service import (
 
 from backend.services.settings_service import ids_settings
 
+# WebSocket manager
+from backend.websocket_manager import manager
+
 
 router = APIRouter()
 
@@ -139,3 +142,19 @@ def update_settings(
     return ids_settings.update_settings(
         settings
     )
+
+
+# -----------------------------------
+# Internal Alert Broadcast
+# -----------------------------------
+
+@router.post("/internal/broadcast-alert")
+async def broadcast_alert(
+    alert: dict
+):
+
+    await manager.broadcast(alert)
+
+    return {
+        "status": "broadcasted"
+    }
