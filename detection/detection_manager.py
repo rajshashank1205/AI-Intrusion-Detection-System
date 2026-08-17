@@ -69,6 +69,10 @@ class DetectionManager:
 
         self.window = SlidingWindow(
             window_seconds=2
+
+        )
+        self.syn_window = SlidingWindow(
+            window_seconds = 2
         )
 
         # Automatically load every detector
@@ -228,10 +232,23 @@ class DetectionManager:
         self.window.add_event(
             packet_data["src_ip"]
         )
+        if (
+            packet_data.get("protocol") == "TCP"
+        and "S" in packet_data.get("flags","")
+        and "A" not in packet_data.get("flags","")
+        ):
+            self.syn_window.add_event(
+                packet_data["src_ip"]
+            )
 
 
         features["recent_packet_count"] = (
             self.window.count(
+                packet_data["src_ip"]
+            )
+        )
+        features["recent_syn_count"] = (
+            self.syn_window.count(
                 packet_data["src_ip"]
             )
         )
