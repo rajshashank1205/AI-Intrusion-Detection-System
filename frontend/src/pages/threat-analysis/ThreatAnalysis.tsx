@@ -48,7 +48,7 @@ export default function ThreatAnalysis() {
       try {
 
         const response = await fetch(
-          "http://127.0.0.1:8000/threat-analysis"
+          `${import.meta.env.VITE_API_URL}/threat-analysis`
         );
 
 

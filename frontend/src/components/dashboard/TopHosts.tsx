@@ -11,7 +11,7 @@ export default function TopHosts() {
   async function loadHosts() {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/top-hosts"
+        `${import.meta.env.VITE_API_URL}/top-hosts`
       );
 
       const data = await response.json();

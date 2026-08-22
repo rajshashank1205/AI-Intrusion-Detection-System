@@ -48,7 +48,7 @@ export default function Incidents() {
       try {
 
         const response = await fetch(
-          "http://127.0.0.1:8000/incidents"
+          `${import.meta.env.VITE_API_URL}/incidents`
         );
 
 
@@ -147,7 +147,7 @@ export default function Incidents() {
     try {
 
       const response = await fetch(
-        `http://127.0.0.1:8000/incidents/${incidentId}/status`,
+        `${import.meta.env.VITE_API_URL}/incidents/${incidentId}/status`,
         {
 
           method: "PATCH",

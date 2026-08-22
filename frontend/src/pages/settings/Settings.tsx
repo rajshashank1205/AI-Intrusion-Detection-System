@@ -60,7 +60,7 @@ export default function Settings() {
       try {
 
         const response = await fetch(
-          "http://127.0.0.1:8000/settings"
+          `${import.meta.env.VITE_API_URL}/settings`
         );
 
 
@@ -202,7 +202,7 @@ export default function Settings() {
     try {
 
       const response = await fetch(
-        "http://127.0.0.1:8000/settings",
+        `${import.meta.env.VITE_API_URL}/settings`,
         {
 
           method: "PUT",

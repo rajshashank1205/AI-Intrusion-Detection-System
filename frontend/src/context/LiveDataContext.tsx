@@ -138,7 +138,9 @@ export function LiveDataProvider({
 
 
       socket = new WebSocket(
-        "ws://127.0.0.1:8000/ws"
+        `${(import.meta.env.VITE_API_URL || "http://127.0.0.1:8000")
+          .replace(/^http:/, "ws:")
+          .replace(/^https:/, "wss:")}/ws`
       );
 
 
