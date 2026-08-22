@@ -12,10 +12,10 @@ type Threat = {
 };
 
 const colors: Record<string, string> = {
-  Critical: "#ef4444",
-  High: "#f59e0b",
-  Medium: "#3b82f6",
-  Low: "#22c55e",
+  CRITICAL: "#ef4444",
+  HIGH: "#f59e0b",
+  MEDIUM: "#3b82f6",
+  LOW: "#22c55e",
 };
 
 export default function ThreatDistribution() {
@@ -80,7 +80,10 @@ export default function ThreatDistribution() {
                 {data.map((entry) => (
                   <Cell
                     key={entry.severity}
-                    fill={colors[entry.severity] ?? "#71717a"}
+                    fill={
+                      colors[entry.severity.toUpperCase()] ??
+                      "#71717a"
+                    }
                   />
                 ))}
               </Pie>
@@ -98,7 +101,9 @@ export default function ThreatDistribution() {
             const percentage =
               totalThreats === 0
                 ? 0
-                : Math.round((item.total / totalThreats) * 100);
+                : Math.round(
+                    (item.total / totalThreats) * 100
+                  );
 
             return (
 
@@ -113,7 +118,8 @@ export default function ThreatDistribution() {
                     className="h-3 w-3 rounded-full"
                     style={{
                       backgroundColor:
-                        colors[item.severity] ?? "#71717a",
+                        colors[item.severity.toUpperCase()] ??
+                        "#71717a",
                     }}
                   />
 

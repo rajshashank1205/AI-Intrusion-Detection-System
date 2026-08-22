@@ -1,3 +1,5 @@
+import time
+
 from detection.behavior.classifier import BehaviorClassifier
 from detection.behavior.behavior_result import BehaviorResult
 
@@ -5,7 +7,17 @@ from detection.behavior.behavior_result import BehaviorResult
 class BehaviorAnalyzer:
 
     def __init__(self):
+
         self.classifier = BehaviorClassifier()
+
+        # Prevent the same host from generating
+        # repeated Host Sweep alerts.
+        self.host_sweep_alerts = {}
+
+        # Minimum time between Host Sweep alerts
+        # for the same host.
+        self.host_sweep_cooldown = 30
+
 
     def analyze(self, host):
 
@@ -19,6 +31,7 @@ class BehaviorAnalyzer:
 
         result.activity = classification["activity"]
         result.confidence = classification["confidence"]
+
 
         # -----------------------------------------
         # Brute Force Login
@@ -38,6 +51,7 @@ class BehaviorAnalyzer:
                 f"from {host['ip']}."
             )
 
+
         # -----------------------------------------
         # Suspicious Login Activity
         # -----------------------------------------
@@ -56,6 +70,7 @@ class BehaviorAnalyzer:
                 f"from {host['ip']}."
             )
 
+
         # -----------------------------------------
         # Port Scan
         # -----------------------------------------
@@ -72,21 +87,52 @@ class BehaviorAnalyzer:
                 f"unique destination ports."
             )
 
+
         # -----------------------------------------
         # Host Sweep
         # -----------------------------------------
 
         elif classification["activity"] == "Host Sweep":
 
-            result.detected = True
-            result.attack = "Host Sweep"
+            host_ip = host["ip"]
+            current_time = time.monotonic()
 
-            result.raise_score(50)
+            last_alert = self.host_sweep_alerts.get(host_ip)
 
-            result.add_reason(
-                f"Contacted {len(host['destination_ips'])} "
-                f"unique destination IPs."
-            )
+            # Check whether this host already generated
+            # a Host Sweep alert recently.
+            if (
+                last_alert is not None
+                and current_time - last_alert < self.host_sweep_cooldown
+            ):
+
+                # Suppress duplicate alert.
+                result.detected = False
+                result.attack = None
+
+                result.raise_score(10)
+
+                result.add_reason(
+                    f"Host Sweep already detected recently. "
+                    f"Monitoring {len(host['destination_ips'])} "
+                    f"unique destination IPs."
+                )
+
+            else:
+
+                # Generate a new Host Sweep alert.
+                self.host_sweep_alerts[host_ip] = current_time
+
+                result.detected = True
+                result.attack = "Host Sweep"
+
+                result.raise_score(50)
+
+                result.add_reason(
+                    f"Contacted {len(host['destination_ips'])} "
+                    f"unique destination IPs."
+                )
+
 
         # -----------------------------------------
         # Connection Burst
@@ -106,6 +152,7 @@ class BehaviorAnalyzer:
                 "Large number of new outbound connections."
             )
 
+
         # -----------------------------------------
         # Normal Traffic
         # -----------------------------------------
@@ -119,8 +166,9 @@ class BehaviorAnalyzer:
                 "No suspicious behaviour detected."
             )
 
+
         # -----------------------------------------
-        # Calculate severity from final score
+        # Calculate severity
         # -----------------------------------------
 
         result.finalize()
