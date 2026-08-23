@@ -1,5 +1,7 @@
 import requests
 
+from backend.config import BACKEND_URL
+
 
 def broadcast_packet(packet_data: dict):
     """
@@ -22,9 +24,9 @@ def broadcast_packet(packet_data: dict):
 
     try:
         requests.post(
-            "http://127.0.0.1:8000/internal/broadcast-packet",
+            f"{BACKEND_URL}/internal/broadcast-packet",
             json=packet_event,
-            timeout=1
+            timeout=1,
         )
 
     except requests.RequestException:

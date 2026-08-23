@@ -15,7 +15,7 @@ from backend.packet_events import broadcast_packet
 # Backend Settings Configuration
 # -------------------------------------------------
 
-BACKEND_URL = "http://127.0.0.1:8000"
+from backend.config import BACKEND_URL
 
 SETTINGS_REFRESH_INTERVAL = 5
 

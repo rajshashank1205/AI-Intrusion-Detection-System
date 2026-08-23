@@ -1,4 +1,5 @@
 import requests
+from backend.config import BACKEND_URL
 
 
 def broadcast_alert(alert: dict):
@@ -11,7 +12,7 @@ def broadcast_alert(alert: dict):
 
     try:
         response = requests.post(
-            "http://127.0.0.1:8000/internal/broadcast-alert",
+            f"{BACKEND_URL}/internal/broadcast-alert",
             json=alert,
             timeout=2
         )

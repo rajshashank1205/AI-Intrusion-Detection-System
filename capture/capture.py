@@ -3,6 +3,7 @@ import time
 
 import requests
 from scapy.all import sniff
+from backend.config import BACKEND_URL
 
 from capture.parser import parse_packet
 
@@ -149,7 +150,7 @@ def send_packet_rate():
 
             requests.post(
 
-                "http://127.0.0.1:8000/internal/packet-rate",
+                f"{BACKEND_URL}/internal/packet-rate",
 
                 json={
                     "packets_per_second":

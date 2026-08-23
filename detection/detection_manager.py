@@ -25,7 +25,7 @@ COLLECT_TRAINING_DATA = False
 # Backend Configuration
 # -------------------------------------------------
 
-BACKEND_URL = "http://127.0.0.1:8000"
+from backend.config import BACKEND_URL
 
 
 # -------------------------------------------------
